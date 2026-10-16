@@ -1,0 +1,149 @@
+REPORTE DE PRÁCTICA: ANÁLISIS, CORRECCIÓN Y JUSTIFICACIÓN DE INCIDENCIAS EN NEXO
+Código Antes: 
+                                                                          JavaScript
+project.members.some((member) => member === user.id)
+Código Después:
+                                                                                         JavaScript
+project.members.some((member) => String(member) === user.id)
+Explicación: La conversión con String() garantiza la igualdad segura entre tipos de datos distintos.
+2.-
+Código Antes:
+JavaScript
+res.status(200).json({ deleted: true })
+res.status(204).end()
+Código Después:
+JavaScript
+res.status(204).end()
+Explicación: Se asegura el cierre correcto y único de la transacción HTTP sin duplicar llamadas  ya que fallarían los  métodos de respuesta.
+3.
+Código Antes:
+JavaScript
+const project = await Project.findByIdAndUpdate(req.params.id, changes, { new: true })
+Código Después:
+JavaScript
+const project = await Project.findByIdAndUpdate(req.params.id, changes, {
+  new: true,
+  runValidators: true,
+})
+Explicación: Añadir runValidators: true obliga a Mongoose a validar los nuevos datos contra el esquema antes de modificar la base de datos.
+                                                                                                4
+Código Antes:
+JavaScript
+if (project.owner !== req.user.id)
+Código Después:
+JavaScript
+if (String(project.owner) !== req.user.id)
+Explicación: Normalizar ambos valores a cadenas de texto previene bloqueos erróneos o vulnerabilidades de autorización.
+                                                                             5
+Código Antes:
+JavaScript
+email: { type: String, required: true, match: /.+@.+\..+/ }
+Código Después:
+JavaScript
+email: { type: String, required: true, unique: true, match: /.+@.+\..+/ }
+Explicación: unique: true asegura que solo sea un usuario y no duplicados.
+6
+Código Antes:
+JavaScript
+values.reduce((sum, value) => sum + value, 0) / (values.length - 1)
+Código Después:
+JavaScript
+values.reduce((sum, value) => sum + value, 0) / values.length
+Explicación técnica: .La división para el average no es entre -1.
+7
+Código Antes:
+JavaScript
+tasks.reduce((total, task) => total + task.estimate, 0)
+Código Después:
+JavaScript
+tasks.reduce((total, task) => total + Number(task.estimate || 0), 0)
+Explicación: Convertir explícitamente a número y respaldar con 0 previene fallos.
+8
+Código Antes:
+JavaScript
+contacts.filter((contact) => `${contact.name} ${contact.company} ${contact.email}`.includes(search))
+Código Después:
+JavaScript
+const query = search.toLowerCase()
+return contacts.filter((contact) =>
+  `${contact.name} ${contact.company} ${contact.email}`.toLowerCase().includes(query),
+)
+Explicación: cadenas a minúsculas mejora la experiencia de usuario en las búsquedas.
+9
+Código Antes:
+JavaScript
+setTimeout(() => dispatch({ type: 'hide' }), 4000)
+Código Después:
+JavaScript
+clearTimeout(hideTimer.current)
+hideTimer.current = setTimeout(() => dispatch({ type: 'hide' }), 4000)
+Explicación: useRef y clearTimeout para cancelar temporizadores previos antes de programar uno nuevo.
+10
+Código Antes:
+JavaScript
+const ids = state.favoriteIds
+ids.splice(ids.indexOf(id), 1)
+return { favoriteIds: ids }
+Código Después:
+JavaScript
+set((state) => ({
+  favoriteIds: state.favoriteIds.includes(id)
+    ? state.favoriteIds.filter((item) => item !== id)
+    : [...state.favoriteIds, id],
+}))
+Explicación: la inmutabilidad del estado asegura  el ciclo de vida correcto en React.
+11
+Código Antes:
+JavaScript
+queryKey: ['resources']
+Código Después:
+JavaScript
+queryKey: ['resources', tag]
+Explicación técnica: Incluir el parámetro dinámico (tag) en la queryKey asegura que React consulte nuevos datos  de Query al cambiar de filtro.
+12
+Código Antes:
+JavaScript
+async function publish() {
+Código Después:
+JavaScript
+async function publish(event) {
+  event.preventDefault()
+Explicación: Agregar event.preventDefault() detiene la recarga COMPLETA del sitio, lo cual no es necesario por cada actualiacion.
+13
+Código Antes:
+JavaScript
+const { id } = useParams()
+const user = useQuery({
+  queryKey: ['user', id],
+  queryFn: () => get(`/users/${id}`),
+})
+Código Después:
+JavaScript
+const { userId } = useParams()
+const user = useQuery({
+  queryKey: ['user', userId],
+  queryFn: () => get(`/users/${userId}`),
+})
+Explicación: Asegura la coherencia exacta entre el identificador definido en las rutas de la aplicación y la variable consumida en los hooks de consulta de datos.
+14
+Código Antes:
+JavaScript
+removed(state, action) {
+  state.items = state.items.filter((item) => item.id !== action.payload.id)
+}
+Código Después:
+JavaScript
+removed(state, action) {
+  state.items = state.items.filter((item) => item.id !== action.payload)
+}
+Explicación: Permite que el filtro compare bien el id, antes de removerlo en la comparación verdadera, ya que se removera el actio. Payload solo se confirma con el ID de este.
+15
+Código Antes:
+JavaScript
+Math.round((tasks.filter((task) => task.status === 'done').length / tasks.length) * 100)
+Código Después:
+JavaScript
+tasks.length
+  ? Math.round((tasks.filter((task) => task.status === 'done').length / tasks.length) * 100)
+  : 0
+Explicación: Hay un operador que verifica la longitud del arreglo, de esta manera regresa 0 en caso contrario para que no se apliquen fallas al correr.
